@@ -6,12 +6,12 @@ const botRouter = require("./routes/v1/botRoutes");
 const messageRouter = require("./routes/v1/messageRoute");
 const { getImageAsBase64 } = require("./utils/geminiManager");
 const toolRouter = require("./routes/v1/toolRoutes");
+const supportRouter = require("./routes/v1/supportRoutes");
 require("dotenv").config();
 const cors = require("cors");
-const supportRouter = require("./routes/v1/supportRoutes");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000; // Render default
 
 //! connect mongoose
 mongoose
@@ -20,17 +20,20 @@ mongoose
       `mongodb+srv://${process.env.MONGO_USER_NAME}:${process.env.MONGO_USER_PASS}@cluster.tlonw2c.mongodb.net/?retryWrites=true&w=majority&appName=Cluster`
   )
   .then(() => {
-    console.log("Connected to DB");
+    console.log("✅ Connected to DB");
   })
   .catch((err) => {
-    console.log(err);
+    console.error("❌ DB connection error:", err);
   });
 
 //! middleware
 app.use(express.json());
+app.use(cors()); // Allow all origins
 
-//! config cors
-app.use(cors()); // 👈 Allow all origins
+//! health check route
+app.get("/", (req, res) => {
+  res.status(200).send("✅ Server is alive!");
+});
 
 //! routes
 app.use("/api/v1/user", userRouter);
@@ -43,6 +46,6 @@ app.use("/api/v1/support", supportRouter);
 app.use(errorHandler);
 
 //! start server
-app.listen(PORT, () => {
-  console.log(`Server is running on port http://localhost:${PORT}/api/v1`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server is running on http://0.0.0.0:${PORT}/api/v1`);
 });
