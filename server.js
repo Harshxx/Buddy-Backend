@@ -11,7 +11,7 @@ require("dotenv").config();
 const cors = require("cors");
 
 const app = express();
-const PORT = process.env.PORT || 10000; // Render default
+const PORT = process.env.PORT || 3000; // Render default
 
 //! connect mongoose
 mongoose
@@ -46,6 +46,6 @@ app.use("/api/v1/support", supportRouter);
 app.use(errorHandler);
 
 //! start server
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server is running on http://0.0.0.0:${PORT}/api/v1`);
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on http://localhost:${PORT}/api/v1`);
 });

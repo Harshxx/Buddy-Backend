@@ -87,27 +87,26 @@ const messageCtrl = {
     const { text, botId, botDescription, personality } = req.body;
     const image = req.savedImage || null;
 
-    // Trim message if it's a string (avoid blank spaces only)
+    // Clean message
     const cleanMessage = typeof text === "string" ? text.trim() : "";
 
-    // Validate: at least message or image must exist
     if (!cleanMessage && !image) {
       return res.status(400).json({
         error: "Either a message or an image is required.",
       });
     }
 
-    // recent history
+    // Recent history
     const recentMessages = await Message.find({ userId, botId })
       .sort({ createdAt: 1 })
       .limit(20)
       .populate({
         path: "image",
-        select: "url -_id", // only fetch image.inlineData, exclude _id
+        select: "url -_id",
       })
       .lean();
 
-    //format history
+    // Format history for Gemini
     let formattedHistory = await buildGeminiHistory({
       recentMessages,
       botDescription,
@@ -115,45 +114,68 @@ const messageCtrl = {
       ...(image?.inlineData && { imageData: image.inlineData }),
     });
 
-    // create gemini model
-    const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-    // Construct Gemini chat session from saved history
-    const chat = genAI.chats.create({
-      model: "gemini-1.5-pro",
-      history: formattedHistory,
-      config: {
-        temperature: 0.7, // adds more variation and personality
-        topP: 0.9, // allows more diverse word choices
-        maxTokens: 150, // enough for richer, friendly replies but still mobile-appropriate
-      },
+    // ✅ Initialize Gemini
+    const genAI = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
     });
 
-    const response = await chat.sendMessage({ message: cleanMessage });
+    try {
+      // ✅ Generate response with history
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          ...formattedHistory,
+          {
+            role: "user",
+            parts: [
+              ...(cleanMessage ? [{ text: cleanMessage }] : []),
+              ...(image?.inlineData ? [{ inlineData: image.inlineData }] : []),
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.9,
+          maxOutputTokens: 150,
+        },
+        thinkingConfig: {
+          // thinkingBudget: 1024,
+          // Turn off thinking:
+          // thinkingBudget: 0
+          // Turn on dynamic thinking:
+          thinkingBudget: -1,
+        },
+      });
+      const rawReply =
+        response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "Sorry, I couldn't generate a response.";
 
-    const rawReply =
-      response?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "Sorry, I couldn't generate a response.";
+      const reply = typeof rawReply === "string" ? rawReply.trim() : rawReply;
 
-    const reply = typeof rawReply === "string" ? rawReply.trim() : rawReply;
-    // Save new user message + Gemini reply to DB
-    await Message.insertMany([
-      {
-        userId,
-        botId,
-        senderType: "user",
-        message: cleanMessage,
-        ...(image?._id && { image: image._id }), // include image only if image._id exists
-      },
-      {
-        userId,
-        botId,
-        senderType: "model",
-        message: reply, // last reply
-      },
-    ]);
+      // Save messages
+      await Message.insertMany([
+        {
+          userId,
+          botId,
+          senderType: "user",
+          message: cleanMessage,
+          ...(image?._id && { image: image._id }),
+        },
+        {
+          userId,
+          botId,
+          senderType: "model",
+          message: reply,
+        },
+      ]);
 
-    res.status(200).json({ success: true, reply: reply });
+      res.status(200).json({ success: true, reply });
+    } catch (err) {
+      console.error("Gemini chat error:", err.message);
+      res
+        .status(500)
+        .json({ success: false, error: "Failed to generate response." });
+    }
   }),
 
   //! delete messages of user
