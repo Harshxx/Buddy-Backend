@@ -25,6 +25,12 @@ messageRouter.post(
 );
 
 messageRouter.post(
+  "/delete-message-single",
+  isAuthenticated,
+  messageCtrl.deleteSingleMessage
+);
+
+messageRouter.post(
   "/get-bot-messages",
   isAuthenticated,
   messageCtrl.getBotMessages

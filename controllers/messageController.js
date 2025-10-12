@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const {
   deleteMessagesByUserAndBot,
   deleteMessagesByUser,
+  deleteSingleMessageById,
 } = require("../utils/deleteMessages");
 
 const messageCtrl = {
@@ -49,6 +50,7 @@ const messageCtrl = {
           _id: "$botId",
           messages: {
             $push: {
+              messageId: "$_id",
               message: "$message",
               image: "$image",
               senderType: "$senderType",
@@ -196,6 +198,30 @@ const messageCtrl = {
 
     // delete message and image of single bot
     await deleteMessagesByUserAndBot(userId, botId);
+
+    res.status(200).json({
+      success: true,
+      message: "Messages and associated images deleted successfully.",
+    });
+  }),
+  //! delete single message of user
+  deleteSingleMessage: asyncHandler(async (req, res) => {
+    const userId = req.user.id;
+    const { messageId } = req.body;
+
+    if (!messageId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "messageId is required." });
+    }
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "userId is required." });
+    }
+
+    // delete message and image of single bot
+    await deleteSingleMessageById(userId, messageId);
 
     res.status(200).json({
       success: true,
