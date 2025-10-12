@@ -14,7 +14,9 @@ async function sendVerificationEmail(user) {
   await user.save();
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -28,7 +30,7 @@ async function sendVerificationEmail(user) {
     text: `Your verification code is: ${code}`,
     html: `
       <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-        <p>Hi ${user.username},</p>
+        <p>Hi ${user.userName},</p>
         <p>Your <strong>Buddy</strong> verification code is:</p>
         <p style="font-size: 28px; font-weight: bold; color: #007bff;">${code}</p>
         <p>This code will expire in 10 minutes.</p>
