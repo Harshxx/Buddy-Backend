@@ -1,4 +1,5 @@
 const sgMail = require("@sendgrid/mail");
+require("dotenv").config();
 
 // Initialize SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -17,8 +18,9 @@ async function sendPasswordEmail(user) {
 
   const msg = {
     to: user.email,
-    from: process.env.EMAIL_USER, // Verified sender email in SendGrid
-    subject: "Your Buddy Password Reset Code",
+    from: process.env.EMAIL_USER,
+    replyTo: process.env.EMAIL_USER,
+    subject: "Buddy Password Reset Code",
     text: `Your password reset code is: ${code}`,
     html: `
       <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
@@ -27,7 +29,6 @@ async function sendPasswordEmail(user) {
         <p style="font-size: 28px; font-weight: bold; color: #007bff;">${code}</p>
         <p>This code will expire in 10 minutes.</p>
         <p>If you didn’t request this, please ignore this email.</p>
-        <p style="margin-top: 30px;">Thanks,<br>The Buddy Team</p>
       </div>
     `,
   };
@@ -36,7 +37,7 @@ async function sendPasswordEmail(user) {
     const response = await sgMail.send(msg);
     console.log("Email sent:", response[0].statusCode);
   } catch (err) {
-    console.error("Error sending email:", err);
+    console.error("Error sending email:");
   }
 }
 

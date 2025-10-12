@@ -1,4 +1,6 @@
 const sgMail = require("@sendgrid/mail");
+require("dotenv").config();
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 function generateVerificationCode() {
@@ -16,7 +18,8 @@ async function sendVerificationEmail(user) {
   const msg = {
     to: user.email,
     from: process.env.EMAIL_USER,
-    subject: "Your Buddy Verification Code",
+    replyTo: process.env.EMAIL_USER,
+    subject: "Buddy Verification Code",
     text: `Your verification code is: ${code}`,
     html: `
       <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
@@ -25,16 +28,14 @@ async function sendVerificationEmail(user) {
         <p style="font-size: 28px; font-weight: bold; color: #007bff;">${code}</p>
         <p>This code will expire in 10 minutes.</p>
         <p>If you didn’t request this, please ignore this email.</p>
-        <p style="margin-top: 30px;">Thanks,<br>The Buddy Team</p>
       </div>
     `,
   };
-
   try {
     const response = await sgMail.send(msg);
-    console.log("Email sent:", response[0].statusCode);
+    console.log(`Sending verify reset code ${code} to ${user.email}`);
   } catch (err) {
-    console.error("Error sending email:", err);
+    console.error("Error sending email:", err.response);
   }
 }
 
