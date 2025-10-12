@@ -1,5 +1,4 @@
 const nodemailer = require("nodemailer");
-require("dotenv").config();
 
 function generateVerificationCode() {
   return Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit code
@@ -8,7 +7,7 @@ function generateVerificationCode() {
 async function sendVerificationEmail(user) {
   const code = generateVerificationCode();
 
-  // Save code and expiry to DB (10 min expiry)
+  // Save code and expiry to DB
   user.verificationCode = code;
   user.codeExpires = Date.now() + 10 * 60 * 1000;
   await user.save();
@@ -23,7 +22,7 @@ async function sendVerificationEmail(user) {
     },
   });
 
-  await transporter.sendMail({
+  const mailOptions = {
     from: `"Buddy Support" <${process.env.EMAIL_USER}>`,
     to: user.email,
     subject: "Your Buddy Verification Code",
@@ -38,7 +37,14 @@ async function sendVerificationEmail(user) {
         <p style="margin-top: 30px;">Thanks,<br>The Buddy Team</p>
       </div>
     `,
-  });
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent:", info.response);
+  } catch (err) {
+    console.error("Error sending email:", err);
+  }
 }
 
 module.exports = sendVerificationEmail;
