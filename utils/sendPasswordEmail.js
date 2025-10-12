@@ -1,4 +1,7 @@
-const nodemailer = require("nodemailer");
+const sgMail = require("@sendgrid/mail");
+
+// Initialize SendGrid
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 function generateVerificationCode() {
   return Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit code
@@ -12,19 +15,9 @@ async function sendPasswordEmail(user) {
   user.passwordCodeExpires = Date.now() + 10 * 60 * 1000;
   await user.save();
 
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  const mailOptions = {
-    from: `"Buddy Support" <${process.env.EMAIL_USER}>`,
+  const msg = {
     to: user.email,
+    from: process.env.EMAIL_USER, // Verified sender email in SendGrid
     subject: "Your Buddy Password Reset Code",
     text: `Your password reset code is: ${code}`,
     html: `
@@ -40,8 +33,8 @@ async function sendPasswordEmail(user) {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response);
+    const response = await sgMail.send(msg);
+    console.log("Email sent:", response[0].statusCode);
   } catch (err) {
     console.error("Error sending email:", err);
   }
