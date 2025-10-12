@@ -125,10 +125,16 @@ const botCtrl = {
         });
 
         if (!avatar?.success) {
-          console.log(`Avatar generation failed: ${avatar?.message}`);
+          return res.status(500).json({
+            success: false,
+            message: avatar?.message || "Failed to generate AI image.",
+          });
         }
       } catch (error) {
-        console.log("Avatar generation error:", error.message);
+        return res.status(500).json({
+          success: false,
+          message: error?.message || "Failed to generate AI description.",
+        });
       }
     }
 

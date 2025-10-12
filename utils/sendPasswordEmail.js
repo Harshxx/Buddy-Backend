@@ -35,10 +35,7 @@ async function sendPasswordEmail(user) {
 
   try {
     const response = await sgMail.send(msg);
-    console.log("Email sent:", response[0].statusCode);
-  } catch (err) {
-    console.error("Error sending email:");
-  }
+  } catch (err) {}
 }
 
 module.exports = sendPasswordEmail;

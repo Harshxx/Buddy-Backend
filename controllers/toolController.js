@@ -24,8 +24,6 @@ const toolCtrl = {
     // Prepare history
     const recentMessages = Array.isArray(history) ? history : [];
     const formattedHistory = [];
-    console.log(formattedHistory);
-
     for (const msg of recentMessages) {
       const parts = [];
       if (msg.message?.trim()) parts.push({ text: msg.message.trim() });

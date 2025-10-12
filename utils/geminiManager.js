@@ -263,7 +263,6 @@ Return only the final prompt text.
         contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
         generationConfig: { ...modelConfig, maxOutputTokens },
       });
-      console.log(response.candidates[0].content);
       // debug logging (optional)
       // console.debug("generateDescription response:", response);
 

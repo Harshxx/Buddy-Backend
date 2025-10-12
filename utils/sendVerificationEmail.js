@@ -33,10 +33,7 @@ async function sendVerificationEmail(user) {
   };
   try {
     const response = await sgMail.send(msg);
-    console.log(`Sending verify reset code ${code} to ${user.email}`);
-  } catch (err) {
-    console.error("Error sending email:", err.response);
-  }
+  } catch (err) {}
 }
 
 module.exports = sendVerificationEmail;
