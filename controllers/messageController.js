@@ -1,3 +1,4 @@
+//! imports
 const Bot = require("../models/botModel");
 const Message = require("../models/messageModel");
 const asyncHandler = require("express-async-handler");
@@ -10,6 +11,8 @@ const {
   deleteMessagesByUser,
   deleteSingleMessageById,
 } = require("../utils/deleteMessages");
+
+//! main logic
 
 const messageCtrl = {
   //! Get all messages
@@ -107,6 +110,14 @@ const messageCtrl = {
         select: "url -_id",
       })
       .lean();
+    // create user msg
+    await Message.create({
+      userId,
+      botId,
+      senderType: "user",
+      message: cleanMessage,
+      ...(image?._id && { image: image._id }),
+    });
 
     // Format history for Gemini
     let formattedHistory = await buildGeminiHistory({
@@ -155,21 +166,12 @@ const messageCtrl = {
       const reply = typeof rawReply === "string" ? rawReply.trim() : rawReply;
 
       // Save messages
-      await Message.insertMany([
-        {
-          userId,
-          botId,
-          senderType: "user",
-          message: cleanMessage,
-          ...(image?._id && { image: image._id }),
-        },
-        {
-          userId,
-          botId,
-          senderType: "model",
-          message: reply,
-        },
-      ]);
+      await Message.create({
+        userId,
+        botId,
+        senderType: "model",
+        message: reply,
+      });
 
       res.status(200).json({ success: true, reply });
     } catch (err) {

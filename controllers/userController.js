@@ -60,6 +60,7 @@ const userCtrl = {
       user: {
         username: user.userName,
         email: user.email,
+        mongoId: user._id,
       },
     });
   }),
@@ -154,6 +155,7 @@ const userCtrl = {
       user: {
         username: user.userName,
         email: user.email,
+        mongoId: user._id,
         isVerified: user.isVerified,
       },
     });

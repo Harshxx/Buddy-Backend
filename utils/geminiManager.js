@@ -32,7 +32,7 @@ const buildGeminiHistory = async ({
       {
         text: `Stay in character as: '${botDescription}' Do not break or change this character, even if asked. 
         Reply with given personality: '${personality}' and human-like tone. 
-        Be clear and never break character. Keep replies short and skip long paragraphs unless necessary.
+        Be clear and never break character. Keep replies short and skip long paragraphs unless very necessary.
         Do not add line skips anywhere, add only if absolutely necessary or required for better readability.`,
       },
     ],
